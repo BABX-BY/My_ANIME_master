@@ -1,0 +1,73 @@
+<nav class="navbar">
+  <div class="navbar-inner">
+    <!-- Logo -->
+    <a routerLink="/" class="logo" (click)="closeMobile()">
+      <span class="logo-icon">🌸</span>
+      <span class="logo-text">AniVerse</span>
+    </a>
+
+    <!-- Desktop Menu -->
+    <ul class="nav-links">
+      <li>
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <span class="nav-icon">🏠</span> Home
+        </a>
+      </li>
+      <li>
+        <a routerLink="/characters" routerLinkActive="active">
+          <span class="nav-icon">👤</span> Characters
+        </a>
+      </li>
+      <li>
+        <a routerLink="/anime" routerLinkActive="active">
+          <span class="nav-icon">🎬</span> Anime
+        </a>
+      </li>
+      <li>
+        <a routerLink="/categories" routerLinkActive="active">
+          <span class="nav-icon">📂</span> Categories
+        </a>
+      </li>
+      <li>
+        <a routerLink="/favorites" routerLinkActive="active" class="fav-link">
+          <span class="nav-icon">❤️</span> Favorites
+          @if (favService.count() > 0) {
+            <span class="fav-badge">{{ favService.count() }}</span>
+          }
+        </a>
+      </li>
+    </ul>
+
+    <!-- Mobile Toggle -->
+    <button class="mobile-toggle" (click)="toggleMobile()" [attr.aria-expanded]="mobileOpen()" aria-label="Toggle menu">
+      <span class="hamburger-line" [class.open]="mobileOpen()"></span>
+      <span class="hamburger-line" [class.open]="mobileOpen()"></span>
+      <span class="hamburger-line" [class.open]="mobileOpen()"></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (mobileOpen()) {
+    <div class="mobile-overlay" (click)="closeMobile()"></div>
+    <div class="mobile-menu">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMobile()">
+        <span>🏠</span> Home
+      </a>
+      <a routerLink="/characters" routerLinkActive="active" (click)="closeMobile()">
+        <span>👤</span> Characters
+      </a>
+      <a routerLink="/anime" routerLinkActive="active" (click)="closeMobile()">
+        <span>🎬</span> Anime
+      </a>
+      <a routerLink="/categories" routerLinkActive="active" (click)="closeMobile()">
+        <span>📂</span> Categories
+      </a>
+      <a routerLink="/favorites" routerLinkActive="active" (click)="closeMobile()" class="fav-link">
+        <span>❤️</span> Favorites
+        @if (favService.count() > 0) {
+          <span class="fav-badge">{{ favService.count() }}</span>
+        }
+      </a>
+    </div>
+  }
+</nav>

@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  apiBase: '/api'
+  apiBase: '/api',
+  jikanBase: 'https://api.jikan.moe/v4'
 };

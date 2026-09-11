@@ -1,0 +1,36 @@
+<div class="page-container">
+  <div class="page-header animate-fade-in-up">
+    <h1 class="page-title">❤️ <span class="gradient-text">My Favorites</span></h1>
+    <p class="page-subtitle">ตัวละครที่คุณชื่นชอบ ({{ favService.count() }} characters)</p>
+  </div>
+
+  @if (favService.count() > 0) {
+    <div class="actions-bar animate-fade-in-up" style="animation-delay:80ms">
+      <span class="fav-info">💾 Saved in your browser — persists across sessions</span>
+      <button class="clear-btn" (click)="clearAll()">🗑️ Clear All</button>
+    </div>
+
+    <div class="fav-grid">
+      @for (fav of favService.favorites(); track fav.mal_id; let i = $index) {
+        <div class="animate-fade-in-up" [style.animation-delay]="(i*50)+'ms'">
+          <app-character-card
+            [malId]="fav.mal_id"
+            [name]="fav.name"
+            [nameKanji]="fav.name_kanji"
+            [imageUrl]="fav.image_url"
+            [favorites]="fav.favorites"
+            [animeTitle]="fav.anime_title"
+            [animeId]="fav.anime_id"
+          />
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state animate-fade-in">
+      <div class="empty-icon">💔</div>
+      <h3>ยังไม่มีรายการโปรด</h3>
+      <p>เพิ่มตัวละครที่ชื่นชอบโดยกดปุ่ม ❤️ บน Character Card</p>
+      <button class="btn-primary" (click)="goCharacters()">👤 สำรวจตัวละคร</button>
+    </div>
+  }
+</div>

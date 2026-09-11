@@ -1,180 +1,111 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { Observable, Subscription, finalize } from 'rxjs';
-import { DragonBallApiService } from '../../core/dragonball-api.service';
-import type {
-  CharacterDetail,
-  CharacterListItem,
-  Paginated,
-  PlanetDetail,
-  PlanetListItem
-} from '../../models/dragonball.types';
-
-type CharacterPage = Paginated<CharacterListItem>;
-type PlanetPage = Paginated<PlanetListItem>;
-
-type ViewMode = 'characters' | 'planets';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
+import { AnimeApiService } from '../../core/anime-api.service';
+import { CharacterCard } from '../../components/character-card/character-card';
+import { SkeletonCard } from '../../components/skeleton-card/skeleton-card';
+import type { JikanCharacter, JikanAnime, JikanGenre } from '../../models/anime.types';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
   styleUrl: './home.css',
-  imports: []
+  imports: [CharacterCard, SkeletonCard]
 })
 export class Home implements OnInit {
-  private readonly api = inject(DragonBallApiService);
+  private readonly api = inject(AnimeApiService);
+  private readonly router = inject(Router);
 
-  protected readonly viewMode = signal<ViewMode>('characters');
-  protected readonly searchText = signal('');
-  protected readonly page = signal(1);
-  protected readonly planetDestroyed = signal<boolean | undefined>(undefined);
+  protected readonly searchQuery = signal('');
+  protected readonly popularChars = signal<JikanCharacter[]>([]);
+  protected readonly popularCharsLoading = signal(true);
+  protected readonly featuredAnime = signal<JikanAnime[]>([]);
+  protected readonly featuredAnimeLoading = signal(true);
+  protected readonly genres = signal<JikanGenre[]>([]);
 
-  protected readonly listLoading = signal(false);
-  protected readonly listError = signal<string | null>(null);
-  protected readonly charactersList = signal<Paginated<CharacterListItem> | null>(null);
-  protected readonly planetsList = signal<Paginated<PlanetListItem> | null>(null);
-
-  protected readonly selectedCharacters = signal<CharacterDetail[]>([]);
-  protected readonly selectionLoadingId = signal<number | null>(null);
-
-  protected readonly expandedPlanetId = signal<number | null>(null);
-  protected readonly planetDetailLoading = signal(false);
-  protected readonly planetDetail = signal<PlanetDetail | null>(null);
-
-  private searchDebounceHandle: ReturnType<typeof setTimeout> | undefined;
-  private listSub?: Subscription;
-
-  protected readonly isPlanetFilterActive = computed(
-    () => this.planetDestroyed() === true || this.planetDestroyed() === false
-  );
-
-  protected readonly showPagination = computed(() => {
-    const q = this.searchText().trim();
-    if (this.viewMode() === 'characters') {
-      return !q;
-    }
-    return !q && !this.isPlanetFilterActive();
-  });
+  protected readonly categories = [
+    { icon: '⚔️', name: 'Action', genreId: 1 },
+    { icon: '🌟', name: 'Adventure', genreId: 2 },
+    { icon: '💗', name: 'Romance', genreId: 22 },
+    { icon: '😂', name: 'Comedy', genreId: 4 },
+    { icon: '🐉', name: 'Fantasy', genreId: 10 },
+    { icon: '👻', name: 'Horror', genreId: 14 },
+    { icon: '🔮', name: 'Mystery', genreId: 7 },
+    { icon: '🚀', name: 'Sci-Fi', genreId: 24 },
+    { icon: '🏫', name: 'School', genreId: 23 },
+    { icon: '🤖', name: 'Mecha', genreId: 18 },
+    { icon: '👹', name: 'Supernatural', genreId: 37 },
+    { icon: '⚡', name: 'Shounen', genreId: 27 },
+    { icon: '🎭', name: 'Drama', genreId: 8 },
+    { icon: '🏅', name: 'Sports', genreId: 30 }
+  ];
 
   ngOnInit(): void {
-    this.loadList();
+    this.loadPopularCharacters();
+    // Stagger requests to respect rate limit
+    setTimeout(() => this.loadFeaturedAnime(), 400);
   }
 
-  protected onSearchInput(raw: string): void {
-    clearTimeout(this.searchDebounceHandle);
-    this.searchDebounceHandle = setTimeout(() => {
-      this.searchText.set(raw);
-      this.page.set(1);
-      this.loadList();
-    }, 320);
+  protected onSearchInput(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
   }
 
-  protected setView(mode: ViewMode): void {
-    this.viewMode.set(mode);
-    this.page.set(1);
-    this.expandedPlanetId.set(null);
-    this.loadList();
-  }
-
-  protected setPlanetDestroyed(value: boolean | undefined): void {
-    this.planetDestroyed.set(value);
-    this.page.set(1);
-    this.loadList();
-  }
-
-  protected goPage(delta: number): void {
-    this.page.update((p) => Math.max(1, p + delta));
-    this.loadList();
-  }
-
-  protected loadList(): void {
-    this.listSub?.unsubscribe();
-
-    this.listLoading.set(true);
-    this.listError.set(null);
-
-    const mode = this.viewMode();
-    const name = this.searchText().trim() || undefined;
-
-    const finalizeLoading = finalize(() => this.listLoading.set(false));
-
-    if (mode === 'characters') {
-      const characters$: Observable<CharacterPage> = this.api.getCharacters({
-        name,
-        page: name ? undefined : this.page(),
-        limit: name ? undefined : 10
-      });
-      this.listSub = characters$.pipe(finalizeLoading).subscribe({
-        next: (data) => this.charactersList.set(data as CharacterPage),
-        error: (err: unknown) => this.handleListError(err, 'characters')
-      });
+  protected doSearch(): void {
+    const q = this.searchQuery().trim();
+    if (q) {
+      this.router.navigate(['/characters'], { queryParams: { q } });
     } else {
-      const planets$: Observable<PlanetPage> = this.api.getPlanets({
-        name,
-        isDestroyed: this.planetDestroyed(),
-        page: name || this.isPlanetFilterActive() ? undefined : this.page(),
-        limit: name || this.isPlanetFilterActive() ? undefined : 10
-      });
-      this.listSub = planets$.pipe(finalizeLoading).subscribe({
-        next: (data) => this.planetsList.set(data as PlanetPage),
-        error: (err: unknown) => this.handleListError(err, 'planets')
-      });
+      this.router.navigate(['/characters']);
     }
   }
 
-  private handleListError(err: unknown, mode: 'characters' | 'planets'): void {
-    const msg =
-      err && typeof err === 'object' && 'message' in err
-        ? String((err as { message?: string }).message)
-        : 'โหลดข้อมูลไม่สำเร็จ';
-    this.listError.set(msg);
-    if (mode === 'characters') {
-      this.charactersList.set(null);
-    } else {
-      this.planetsList.set(null);
+  protected onSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.doSearch();
     }
   }
 
-  protected isSelected(id: number): boolean {
-    return this.selectedCharacters().some((c) => c.id === id);
+  protected goCharacters(): void {
+    this.router.navigate(['/characters']);
   }
 
-  protected toggleSelectCharacter(item: CharacterListItem): void {
-    if (this.isSelected(item.id)) {
-      this.selectedCharacters.update((arr) => arr.filter((c) => c.id !== item.id));
-      return;
-    }
-    this.selectionLoadingId.set(item.id);
-    this.api
-      .getCharacterById(item.id)
-      .pipe(finalize(() => this.selectionLoadingId.set(null)))
+  protected goCharacter(id: number): void {
+    this.router.navigate(['/characters', id]);
+  }
+
+  protected goAnime(id: number): void {
+    this.router.navigate(['/anime', id]);
+  }
+
+  protected goCategory(genreId: number): void {
+    this.router.navigate(['/categories', genreId]);
+  }
+
+  private loadPopularCharacters(): void {
+    this.popularCharsLoading.set(true);
+    this.api.getTopCharacters(1, 12)
+      .pipe(finalize(() => this.popularCharsLoading.set(false)))
       .subscribe({
-        next: (detail) =>
-          this.selectedCharacters.update((arr) => (arr.some((c) => c.id === detail.id) ? arr : [...arr, detail])),
-        error: () => {
-          /* แสดง error ระดับรายการถ้าต้องการ — ตอนนี้เงียบไว้ */
-        }
+        next: res => this.popularChars.set(res.data ?? []),
+        error: () => this.popularChars.set([])
       });
   }
 
-  protected removeSelected(id: number): void {
-    this.selectedCharacters.update((arr) => arr.filter((c) => c.id !== id));
-  }
-
-  protected togglePlanetExpand(id: number): void {
-    if (this.expandedPlanetId() === id) {
-      this.expandedPlanetId.set(null);
-      this.planetDetail.set(null);
-      return;
-    }
-    this.expandedPlanetId.set(id);
-    this.planetDetail.set(null);
-    this.planetDetailLoading.set(true);
-    this.api
-      .getPlanetById(id)
-      .pipe(finalize(() => this.planetDetailLoading.set(false)))
+  private loadFeaturedAnime(): void {
+    this.featuredAnimeLoading.set(true);
+    this.api.getTopAnime(1, 8)
+      .pipe(finalize(() => this.featuredAnimeLoading.set(false)))
       .subscribe({
-        next: (d) => this.planetDetail.set(d),
-        error: () => this.planetDetail.set(null)
+        next: res => this.featuredAnime.set(res.data ?? []),
+        error: () => this.featuredAnime.set([])
       });
+  }
+
+  protected getFirstAnimeTitle(char: JikanCharacter): string | null {
+    return null; // Top characters endpoint doesn't include anime info
+  }
+
+  protected getAnimeScore(anime: JikanAnime): string {
+    return anime.score ? anime.score.toFixed(1) : 'N/A';
   }
 }

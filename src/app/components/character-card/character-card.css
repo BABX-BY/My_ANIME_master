@@ -1,0 +1,153 @@
+:host {
+  display: block;
+}
+
+.card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-image-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+
+.card:hover .card-image {
+  transform: scale(1.06);
+  filter: brightness(0.7);
+}
+
+/* Overlay */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+}
+
+.card:hover .card-overlay {
+  opacity: 1;
+}
+
+.btn-detail {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transform: translateY(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+}
+
+.card:hover .btn-detail {
+  transform: translateY(0);
+}
+
+.btn-detail:hover {
+  box-shadow: 0 6px 30px rgba(124, 58, 237, 0.6);
+}
+
+/* Favorite Button */
+.btn-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 5;
+}
+
+.btn-fav:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.15);
+}
+
+.btn-fav.is-fav {
+  background: rgba(244, 63, 94, 0.3);
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+}
+
+/* Fav count badge */
+.fav-count {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #fbbf24;
+  font-size: 0.7rem;
+  font-weight: 600;
+  z-index: 5;
+}
+
+/* Card Body */
+.card-body {
+  padding: 0.85rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.card-name {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-kanji {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.card-anime {
+  font-size: 0.75rem;
+  color: var(--color-primary-light);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

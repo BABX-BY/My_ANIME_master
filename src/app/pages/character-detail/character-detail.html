@@ -1,0 +1,154 @@
+<!-- Loading -->
+@if (loading()) {
+  <div class="detail-container">
+    <div class="detail-layout">
+      <div class="skeleton" style="aspect-ratio:3/4; width:100%; border-radius:20px;"></div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:1rem;">
+        <div class="skeleton" style="height:32px; width:60%;"></div>
+        <div class="skeleton" style="height:18px; width:40%;"></div>
+        <div class="skeleton" style="height:14px; width:80%;"></div>
+        <div class="skeleton" style="height:14px; width:70%;"></div>
+        <div class="skeleton" style="height:100px; width:100%;"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Error -->
+@else if (error()) {
+  <div class="state-container">
+    <div class="state-card animate-fade-in">
+      <div class="state-icon">⚠️</div>
+      <h2>เกิดข้อผิดพลาด</h2>
+      <p>{{ error() }}</p>
+      <div class="state-actions">
+        <button class="btn-primary" (click)="retry()">🔄 ลองอีกครั้ง</button>
+        <button class="btn-outline" (click)="goBack()">← กลับ</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Character Detail -->
+@else if (character(); as c) {
+  <div class="detail-container animate-fade-in">
+    <!-- Back button -->
+    <button class="back-btn" (click)="goBack()">← Back to Characters</button>
+
+    <div class="detail-layout">
+      <!-- Image Section -->
+      <div class="image-section">
+        <div class="image-card">
+          <img
+            [src]="c.images?.jpg?.large_image_url ?? c.images?.jpg?.image_url ?? fallbackImage"
+            [alt]="c.name"
+            class="character-image"
+            (error)="onImageError($event)"
+          />
+        </div>
+
+        <!-- Favorite Button -->
+        <button class="fav-btn" [class.is-fav]="isFav" (click)="toggleFav()">
+          {{ isFav ? '❤️ Remove from Favorites' : '🤍 Add to Favorites' }}
+        </button>
+
+        <!-- Stats -->
+        <div class="stats-card glass">
+          <div class="stat">
+            <span class="stat-value">⭐ {{ formatFavorites(c.favorites) }}</span>
+            <span class="stat-label">Favorites</span>
+          </div>
+          @if (c.anime?.length) {
+            <div class="stat">
+              <span class="stat-value">🎬 {{ c.anime.length }}</span>
+              <span class="stat-label">Anime</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Info Section -->
+      <div class="info-section">
+        <div class="name-group">
+          <h1 class="char-name">{{ c.name }}</h1>
+          @if (c.name_kanji) {
+            <p class="char-kanji">{{ c.name_kanji }}</p>
+          }
+          @if (c.nicknames?.length) {
+            <div class="nicknames">
+              @for (n of c.nicknames.slice(0, 5); track n) {
+                <span class="nickname-tag">{{ n }}</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- About / Biography -->
+        @if (c.about) {
+          <div class="detail-section">
+            <h3 class="section-label">📖 About</h3>
+            <div class="about-text" [class.expanded]="showFullBio()">
+              <p>{{ c.about }}</p>
+            </div>
+            @if (c.about.length > 400) {
+              <button class="toggle-bio" (click)="showFullBio.set(!showFullBio())">
+                {{ showFullBio() ? '▲ Show Less' : '▼ Read More' }}
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Anime Appearances -->
+        @if (c.anime?.length) {
+          <div class="detail-section">
+            <h3 class="section-label">🎬 Anime Appearances</h3>
+            <div class="anime-list">
+              @for (entry of c.anime.slice(0, 12); track entry.anime.mal_id) {
+                <button class="anime-item card-hover" (click)="goAnime(entry.anime.mal_id)">
+                  <img
+                    [src]="entry.anime.images?.jpg?.image_url ?? ''"
+                    [alt]="entry.anime.title"
+                    class="anime-thumb"
+                    loading="lazy"
+                    (error)="onImageError($event)"
+                  />
+                  <div class="anime-item-info">
+                    <span class="anime-item-title">{{ entry.anime.title }}</span>
+                    <span class="anime-item-role">{{ entry.role }}</span>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Voice Actors -->
+        @if (japaneseVAs.length || englishVAs.length) {
+          <div class="detail-section">
+            <h3 class="section-label">🎙️ Voice Actors</h3>
+            <div class="va-list">
+              @for (va of japaneseVAs; track va.name) {
+                <div class="va-card">
+                  <img [src]="va.image" [alt]="va.name" class="va-image" loading="lazy" (error)="onImageError($event)" />
+                  <div>
+                    <span class="va-name">{{ va.name }}</span>
+                    <span class="va-lang">🇯🇵 Japanese</span>
+                  </div>
+                </div>
+              }
+              @for (va of englishVAs; track va.name) {
+                <div class="va-card">
+                  <img [src]="va.image" [alt]="va.name" class="va-image" loading="lazy" (error)="onImageError($event)" />
+                  <div>
+                    <span class="va-name">{{ va.name }}</span>
+                    <span class="va-lang">🇺🇸 English</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

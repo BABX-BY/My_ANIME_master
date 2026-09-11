@@ -1,0 +1,39 @@
+<div class="card card-hover" (click)="goDetail()">
+  <div class="card-image-wrap">
+    <img
+      [src]="imageUrl || fallbackImage"
+      [alt]="name"
+      class="card-image"
+      loading="lazy"
+      (error)="onImageError($event)"
+    />
+    <div class="card-overlay">
+      <button
+        class="btn-detail"
+        (click)="goDetail()"
+      >
+        View Details
+      </button>
+    </div>
+    <button
+      class="btn-fav"
+      [class.is-fav]="isFav"
+      (click)="toggleFav($event)"
+      [attr.aria-label]="isFav ? 'Remove from favorites' : 'Add to favorites'"
+    >
+      {{ isFav ? '❤️' : '🤍' }}
+    </button>
+    @if (favorites > 0) {
+      <span class="fav-count">⭐ {{ formatFavorites(favorites) }}</span>
+    }
+  </div>
+  <div class="card-body">
+    <h3 class="card-name">{{ name }}</h3>
+    @if (nameKanji) {
+      <p class="card-kanji">{{ nameKanji }}</p>
+    }
+    @if (animeTitle) {
+      <p class="card-anime">{{ animeTitle }}</p>
+    }
+  </div>
+</div>

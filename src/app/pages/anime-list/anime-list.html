@@ -1,0 +1,74 @@
+<div class="page-container">
+  <div class="page-header animate-fade-in-up">
+    <h1 class="page-title">🎬 <span class="gradient-text">Anime Database</span></h1>
+    <p class="page-subtitle">สำรวจอนิเมะยอดนิยมจาก MyAnimeList</p>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar glass animate-fade-in-up" style="animation-delay:80ms">
+    <span>🔍</span>
+    <input
+      type="search"
+      placeholder="ค้นหาอนิเมะ... (e.g., Naruto, One Piece, Attack on Titan)"
+      (input)="onSearchInput($event)"
+    />
+  </div>
+
+  @if (loading()) {
+    <div class="anime-grid">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <app-skeleton-card />
+      }
+    </div>
+  } @else if (error()) {
+    <div class="state-box animate-fade-in">
+      <div class="state-icon">⚠️</div>
+      <h3>เกิดข้อผิดพลาด</h3>
+      <p>{{ error() }}</p>
+      <button class="btn-primary" (click)="loadAnime()">🔄 ลองอีกครั้ง</button>
+    </div>
+  } @else if (animeList().length === 0) {
+    <div class="state-box animate-fade-in">
+      <div class="state-icon">🔍</div>
+      <h3>ไม่พบอนิเมะ</h3>
+      <p>ลองค้นหาด้วยคำอื่น</p>
+    </div>
+  } @else {
+    <div class="anime-grid">
+      @for (anime of animeList(); track anime.mal_id; let i = $index) {
+        <div class="anime-card card-hover animate-fade-in-up" [style.animation-delay]="(i*40)+'ms'" (click)="goAnime(anime.mal_id)">
+          <div class="poster">
+            <img [src]="anime.images?.jpg?.large_image_url ?? anime.images?.jpg?.image_url ?? ''" [alt]="anime.title" loading="lazy" />
+            @if (anime.score) {
+              <span class="score-badge">⭐ {{ getScore(anime) }}</span>
+            }
+            @if (anime.rank) {
+              <span class="rank-badge">#{{ anime.rank }}</span>
+            }
+          </div>
+          <div class="card-info">
+            <h3>{{ anime.title }}</h3>
+            <p class="meta">{{ anime.type ?? '' }} @if (anime.episodes) { · {{ anime.episodes }} eps }</p>
+            @if (anime.genres?.length) {
+              <div class="tags">
+                @for (g of anime.genres.slice(0,3); track g.mal_id) {
+                  <span class="tag">{{ g.name }}</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="pg-btn" [disabled]="page()<=1" (click)="goPage(page()-1)">← Prev</button>
+        @for (p of pageNumbers; track p) {
+          <button class="pg-btn" [class.active]="p===page()" (click)="goPage(p)">{{ p }}</button>
+        }
+        <button class="pg-btn" [disabled]="page()>=totalPages()" (click)="goPage(page()+1)">Next →</button>
+      </div>
+    }
+  }
+</div>

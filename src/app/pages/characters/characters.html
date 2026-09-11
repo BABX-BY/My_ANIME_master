@@ -1,0 +1,114 @@
+<div class="page-container">
+  <div class="page-header animate-fade-in-up">
+    <h1 class="page-title">👤 <span class="gradient-text">Character Explorer</span></h1>
+    <p class="page-subtitle">ค้นหาและสำรวจตัวละครอนิเมะนับหมื่นตัวจาก MyAnimeList</p>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="filters-bar glass animate-fade-in-up" style="animation-delay: 100ms">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input
+        type="search"
+        class="filter-search"
+        placeholder="ค้นหาตัวละคร... (e.g., Naruto, Luffy, Gojo)"
+        [value]="searchQuery()"
+        (input)="onSearchInput($event)"
+      />
+    </div>
+    <div class="filter-actions">
+      <button
+        class="sort-btn"
+        [class.active]="sortBy() === 'favorites'"
+        (click)="setSortBy('favorites')"
+      >
+        ⭐ Popularity {{ sortBy() === 'favorites' ? (sortDir() === 'desc' ? '↓' : '↑') : '' }}
+      </button>
+      <button
+        class="sort-btn"
+        [class.active]="sortBy() === 'name'"
+        (click)="setSortBy('name')"
+      >
+        🔤 Name {{ sortBy() === 'name' ? (sortDir() === 'asc' ? 'A→Z' : 'Z→A') : '' }}
+      </button>
+      <button class="reset-btn" (click)="resetFilters()">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="char-grid">
+      @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+        <app-skeleton-card />
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (error()) {
+    <div class="error-state animate-fade-in">
+      <div class="error-icon">⚠️</div>
+      <h3>เกิดข้อผิดพลาด</h3>
+      <p>{{ error() }}</p>
+      <button class="btn-primary" (click)="loadCharacters()">🔄 ลองอีกครั้ง</button>
+    </div>
+  }
+
+  <!-- Empty -->
+  @else if (characters().length === 0) {
+    <div class="empty-state animate-fade-in">
+      <div class="empty-icon">🔍</div>
+      <h3>ไม่พบตัวละคร</h3>
+      <p>ลองค้นหาด้วยคำอื่น หรือรีเซ็ตตัวกรอง</p>
+      <button class="btn-outline" (click)="resetFilters()">↺ รีเซ็ตการค้นหา</button>
+    </div>
+  }
+
+  <!-- Character Grid -->
+  @else {
+    <div class="char-grid">
+      @for (char of characters(); track char.mal_id; let i = $index) {
+        <div class="animate-fade-in-up" [style.animation-delay]="(i * 30) + 'ms'">
+          <app-character-card
+            [malId]="char.mal_id"
+            [name]="char.name"
+            [nameKanji]="char.name_kanji"
+            [imageUrl]="char.images?.jpg?.image_url ?? ''"
+            [favorites]="char.favorites"
+          />
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button
+          class="page-btn"
+          [disabled]="page() <= 1"
+          (click)="goPage(page() - 1)"
+        >
+          ← Prev
+        </button>
+
+        @for (p of pageNumbers; track p) {
+          <button
+            class="page-btn"
+            [class.active]="p === page()"
+            (click)="goPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+
+        <button
+          class="page-btn"
+          [disabled]="page() >= totalPages()"
+          (click)="goPage(page() + 1)"
+        >
+          Next →
+        </button>
+      </div>
+    }
+  }
+</div>

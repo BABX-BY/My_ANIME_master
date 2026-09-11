@@ -1,0 +1,373 @@
+:host { display: block; }
+
+.detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-bottom: 2rem;
+}
+
+.back-btn:hover {
+  background: rgba(124, 58, 237, 0.1);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Image Section */
+.image-section {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .image-section {
+    position: static;
+    max-width: 320px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+.image-card {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.character-image {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.fav-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: rgba(244, 63, 94, 0.05);
+  color: #f87171;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.fav-btn:hover {
+  background: rgba(244, 63, 94, 0.15);
+}
+
+.fav-btn.is-fav {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.5);
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
+}
+
+.stats-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 16px;
+}
+
+.stat {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Info Section */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.name-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.char-name {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.char-kanji {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.nicknames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.nickname-tag {
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  color: #c084fc;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Detail Sections */
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-label {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.about-text {
+  max-height: 150px;
+  overflow: hidden;
+  position: relative;
+  transition: max-height 0.4s ease;
+}
+
+.about-text.expanded {
+  max-height: none;
+}
+
+.about-text p {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.toggle-bio {
+  background: none;
+  border: none;
+  color: var(--color-primary-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  text-align: left;
+}
+
+.toggle-bio:hover {
+  text-decoration: underline;
+}
+
+/* Anime List */
+.anime-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.anime-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.anime-thumb {
+  width: 48px;
+  height: 68px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.anime-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.anime-item-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.anime-item-role {
+  font-size: 0.7rem;
+  color: var(--color-primary-light);
+  font-weight: 500;
+}
+
+/* Voice Actors */
+.va-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.va-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+}
+
+.va-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.va-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.va-lang {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+/* States */
+.state-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.state-card {
+  text-align: center;
+  padding: 3rem 2rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 20px;
+  background: rgba(24, 24, 27, 0.3);
+  max-width: 400px;
+}
+
+.state-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+.state-card h2 {
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin: 0 0 0.5rem;
+}
+
+.state-card p {
+  color: var(--color-text-muted);
+  margin: 0 0 1.5rem;
+}
+
+.state-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+}

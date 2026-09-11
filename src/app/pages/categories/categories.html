@@ -1,0 +1,77 @@
+<div class="page-container">
+  <div class="page-header animate-fade-in-up">
+    <h1 class="page-title">📂 <span class="gradient-text">Anime Categories</span></h1>
+    <p class="page-subtitle">สำรวจอนิเมะตามหมวดหมู่ที่คุณสนใจ</p>
+  </div>
+
+  @if (selectedGenre(); as sg) {
+    <!-- Selected Genre View -->
+    <div class="selected-header animate-fade-in">
+      <button class="back-btn" (click)="clearSelection()">← All Categories</button>
+      <h2 class="selected-title">{{ getIcon(sg.name) }} {{ sg.name }}</h2>
+      @if (sg.count) {
+        <p class="selected-count">{{ sg.count }} anime</p>
+      }
+    </div>
+
+    @if (animeLoading()) {
+      <div class="anime-grid">
+        @for (i of [1,2,3,4,5,6,7,8]; track i) {
+          <app-skeleton-card />
+        }
+      </div>
+    } @else if (filteredAnime().length === 0) {
+      <div class="state-box">
+        <p>😔 ไม่พบอนิเมะในหมวดหมู่นี้</p>
+      </div>
+    } @else {
+      <div class="anime-grid">
+        @for (a of filteredAnime(); track a.mal_id; let i = $index) {
+          <div class="anime-card card-hover animate-fade-in-up" [style.animation-delay]="(i*40)+'ms'" (click)="goAnime(a.mal_id)">
+            <div class="poster">
+              <img [src]="a.images?.jpg?.large_image_url ?? a.images?.jpg?.image_url ?? ''" [alt]="a.title" loading="lazy" />
+              @if (a.score) {
+                <span class="score-badge">⭐ {{ getScore(a) }}</span>
+              }
+            </div>
+            <div class="card-info">
+              <h3>{{ a.title }}</h3>
+              <p class="meta">{{ a.type ?? '' }} @if (a.episodes) { · {{ a.episodes }} eps }</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="pg-btn" [disabled]="page()<=1" (click)="goPage(page()-1)">← Prev</button>
+          @for (p of pageNumbers; track p) {
+            <button class="pg-btn" [class.active]="p===page()" (click)="goPage(p)">{{ p }}</button>
+          }
+          <button class="pg-btn" [disabled]="page()>=totalPages()" (click)="goPage(page()+1)">Next →</button>
+        </div>
+      }
+    }
+  } @else {
+    <!-- Genre Grid -->
+    @if (genresLoading()) {
+      <div class="genre-grid">
+        @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+          <div class="genre-skel skeleton" style="height: 100px; border-radius: 16px;"></div>
+        }
+      </div>
+    } @else {
+      <div class="genre-grid">
+        @for (g of genres(); track g.mal_id; let i = $index) {
+          <button class="genre-card card-hover animate-fade-in-up" [style.animation-delay]="(i*30)+'ms'" (click)="selectGenre(g)">
+            <span class="genre-icon">{{ getIcon(g.name) }}</span>
+            <span class="genre-name">{{ g.name }}</span>
+            @if (g.count) {
+              <span class="genre-count">{{ g.count }} titles</span>
+            }
+          </button>
+        }
+      </div>
+    }
+  }
+</div>
