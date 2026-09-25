@@ -94,31 +94,48 @@ export class Characters implements OnInit, OnDestroy {
     this.error.set(null);
 
     const query = this.searchQuery().trim();
+    const handleErr = (err: any) => {
+      let msg = 'ไม่สามารถโหลดข้อมูลตัวละครได้ กรุณาลองใหม่อีกครั้ง';
+      if (err?.status === 504) {
+        msg = 'เซิร์ฟเวอร์ข้อมูลอนิเมะใช้เวลาตอบกลับนานเกินไป (Timeout) ระบบอาจมีผู้ใช้งานเยอะ กรุณาลองใหม่อีกครั้ง';
+      } else if (err?.status === 429) {
+        msg = 'มีการเรียกใช้งานข้อมูลมากเกินไป กรุณารอสักครู่แล้วลองใหม่';
+      } else if (err?.status >= 500) {
+        msg = 'เซิร์ฟเวอร์ข้อมูลอนิเมะขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้งในภายหลัง';
+      }
+      this.error.set(msg);
+      this.characters.set([]);
+    };
 
     if (query) {
-      this.sub = this.api.searchCharacters(query, this.page(), 24)
+      this.sub = this.api.searchCharacters(query, this.page(), 24, this.sortBy(), this.sortDir())
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: res => {
-            this.characters.set(res.data ?? []);
-            this.totalPages.set(res.pagination?.last_visible_page ?? 1);
+            console.log('[Characters API] Search Result:', res);
+            console.log('[Characters API] Data length:', res?.data?.length);
+            this.characters.set(res?.data ?? []);
+            this.totalPages.set(res?.pagination?.last_visible_page ?? 1);
           },
           error: (err) => {
-            this.error.set('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-            this.characters.set([]);
+            console.error('[Characters API] Search Error:', err);
+            handleErr(err);
           }
         });
     } else {
-      this.sub = this.api.getTopCharacters(this.page(), 24)
+      // For empty search, we can use searchCharacters to support sorting
+      this.sub = this.api.searchCharacters('', this.page(), 24, this.sortBy(), this.sortDir())
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: res => {
-            this.characters.set(res.data ?? []);
-            this.totalPages.set(res.pagination?.last_visible_page ?? 1);
+            console.log('[Characters API] Top/Default Result:', res);
+            console.log('[Characters API] Data length:', res?.data?.length);
+            this.characters.set(res?.data ?? []);
+            this.totalPages.set(res?.pagination?.last_visible_page ?? 1);
           },
-          error: () => {
-            this.error.set('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-            this.characters.set([]);
+          error: (err) => {
+            console.error('[Characters API] Top/Default Error:', err);
+            handleErr(err);
           }
         });
     }

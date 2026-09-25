@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, delay, concatMap, shareReplay, map, catchError, Subject, from, mergeMap } from 'rxjs';
+import { Observable, of, delay, concatMap, shareReplay, map, catchError, Subject, retry, timer, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import type {
   JikanResponse,
@@ -8,13 +8,18 @@ import type {
   JikanCharacterFull,
   JikanAnime,
   JikanGenre,
-  JikanAnimeCharacter,
-  JikanPagination
+  JikanAnimeCharacter
 } from '../models/anime.types';
 
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
+}
+
+interface QueueItem {
+  execute: () => Observable<unknown>;
+  resolve: (value: unknown) => void;
+  reject: (error: unknown) => void;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,12 +30,18 @@ export class AnimeApiService {
   private readonly cache = new Map<string, CacheEntry<unknown>>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  private readonly requestQueue = new Subject<() => Observable<unknown>>();
-  private readonly RATE_DELAY = 350; // ms between requests
+  private readonly requestQueue = new Subject<QueueItem>();
+  private readonly RATE_DELAY = 400; // ms between requests
 
   constructor() {
     this.requestQueue.pipe(
-      concatMap(fn => fn().pipe(delay(this.RATE_DELAY)))
+      concatMap(item => {
+        return item.execute().pipe(
+          map(val => { item.resolve(val); return val; }),
+          catchError(err => { item.reject(err); return of(null); }),
+          delay(this.RATE_DELAY)
+        );
+      })
     ).subscribe();
   }
 
@@ -45,13 +56,27 @@ export class AnimeApiService {
     );
   }
 
-  searchCharacters(query: string, page = 1, limit = 25): Observable<JikanResponse<JikanCharacter[]>> {
+  searchCharacters(query: string, page = 1, limit = 25, orderBy: 'favorites' | 'name' = 'favorites', sortDir: 'asc' | 'desc' = 'desc'): Observable<JikanResponse<JikanCharacter[]>> {
     const q = query.trim();
-    if (!q) return this.getTopCharacters(page, limit);
-    const key = `search-char-${q}-${page}-${limit}`;
+    
+    // Prevent 504 Gateway Timeout: Jikan API /characters endpoint fails when sorting globally without a search query.
+    // Use /top/characters instead when no query is provided and sorting by popularity.
+    if (!q && orderBy === 'favorites' && sortDir === 'desc') {
+      return this.getTopCharacters(page, limit);
+    }
+
+    const params: Record<string, string> = {
+      page: String(page),
+      limit: String(limit),
+      order_by: orderBy,
+      sort: sortDir
+    };
+    if (q) params['q'] = q;
+
+    const key = `search-char-${q}-${page}-${limit}-${orderBy}-${sortDir}`;
     return this.cachedGet<JikanResponse<JikanCharacter[]>>(
       `${this.base}/characters`,
-      { q, page: String(page), limit: String(limit), order_by: 'favorites', sort: 'desc' },
+      params,
       key
     );
   }
@@ -137,15 +162,23 @@ export class AnimeApiService {
     }
 
     return this.http.get<T>(url, { params: httpParams }).pipe(
+      retry({
+        count: 2,
+        delay: (error, retryCount) => {
+          if (error.status === 400 || error.status === 404) {
+            return throwError(() => error);
+          }
+          return timer(retryCount * 1000);
+        }
+      }),
       map(data => {
         this.cache.set(key, { data, timestamp: Date.now() });
         return data;
       }),
       catchError(err => {
-        // If we have stale cache, return it on error
         const stale = this.cache.get(key);
         if (stale) return of(stale.data as T);
-        throw err;
+        return throwError(() => err);
       }),
       shareReplay(1)
     );
